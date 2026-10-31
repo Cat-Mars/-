@@ -1,0 +1,31 @@
+name: 生成喵喵.exe
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装编译器
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: 发布exe
+        run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesInSingleFile=true
+
+      - name: 改名并上传
+        shell: pwsh
+        run: |
+          Copy-Item "bin/Release/net8.0/win-x64/publish/喵喵.exe" "喵喵.exe" -ErrorAction SilentlyContinue
+          if (-not (Test-Path "喵喵.exe")) { Get-ChildItem -Recurse -Filter *.exe | Copy-Item -Destination "喵喵.exe" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 喵喵
+          path: 喵喵.exe
